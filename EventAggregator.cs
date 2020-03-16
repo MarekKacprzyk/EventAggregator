@@ -1,25 +1,61 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace EventAggregator
 {
-    class EventAggregator : IEventAggregator
+    public class EventAggregator : IEventAggregator
     {
+        private static readonly object SyncObject = new object();
+        private readonly Dictionary<Type, List<WeakReference>> _eventDictionary;
 
         public EventAggregator()
         {
-
+            _eventDictionary = new Dictionary<Type, List<WeakReference>>();
         }
 
         public void Publish<TEventType>(TEventType eventType)
         {
-            throw new NotImplementedException();
+            lock(SyncObject)
+            {
+
+            }
         }
 
         public IDisposable Subscribe(object subscriber)
         {
-            throw new NotImplementedException();
+            lock(SyncObject)
+            {
+                var subscriberTypes = subscriber.GetType()
+                    .GetInterfaces()
+                    .Where(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(ISubscriber<>));
+
+                var reference = new WeakReference(subscriber);
+
+                foreach(var subscriberType in subscriberTypes)
+                {
+                    var list = GetSubscribersList(subscriberType);
+                    list.Add(reference);
+                }
+
+                return new Subscriber(subscriber, Unsubscribe);
+            }
         }
 
+        private void Unsubscribe(object subscriber)
+        {
+            
+        }
+
+        private IList<WeakReference> GetSubscribersList(Type subscriberType)
+        {
+            if(!_eventDictionary.TryGetValue(subscriberType, out var subscriberList))
+            {
+                subscriberList = new List<WeakReference>();
+                _eventDictionary.Add(subscriberType, subscriberList);
+            }
+            return subscriberList;
+        }
 
         private class Subscriber : IDisposable
         {
