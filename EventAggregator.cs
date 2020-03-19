@@ -8,7 +8,7 @@ namespace EventAggregator
 {
     public class EventAggregator : IEventAggregator
     {
-        private static readonly object SyncObject = new object();
+        private static readonly object _syncObject = new object();
         private readonly Dictionary<Type, List<WeakReference>> _eventDictionary;
 
         public EventAggregator()
@@ -18,7 +18,7 @@ namespace EventAggregator
         
         public Task Publish<TEventType>(TEventType eventType)
         {
-            lock(SyncObject)
+            lock(_syncObject)
             {
                 var dataType = typeof(TEventType);
                 var list = GetSubscribersList(dataType).ToObservable();
@@ -35,7 +35,7 @@ namespace EventAggregator
 
         public IDisposable Subscribe(object subscriber)
         {
-            lock(SyncObject)
+            lock(_syncObject)
             {
                 var subscriberTypes = subscriber.GetType()
                     .GetInterfaces()
