@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reactive.Linq;
+using System.Threading.Tasks;
 
 namespace EventAggregator
 {
@@ -14,11 +16,19 @@ namespace EventAggregator
             _eventDictionary = new Dictionary<Type, List<WeakReference>>();
         }
 
-        public void Publish<TEventType>(TEventType eventType)
+        public Task Publish<TEventType>(TEventType eventType)
         {
             lock(SyncObject)
             {
-
+                var q = typeof(TEventType);
+                var list = GetSubscribersList(q).ToObservable();
+                return list.ForEachAsync(p =>
+                {
+                    if(p.Target is ISubscriber<TEventType> subscriber)
+                    {
+                        subscriber.OnHandle(eventType);
+                    }
+                });
             }
         }
 
@@ -28,7 +38,8 @@ namespace EventAggregator
             {
                 var subscriberTypes = subscriber.GetType()
                     .GetInterfaces()
-                    .Where(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(ISubscriber<>));
+                    .Where(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(ISubscriber<>))
+                    .SelectMany(t => t.GetGenericArguments());
 
                 var reference = new WeakReference(subscriber);
 
