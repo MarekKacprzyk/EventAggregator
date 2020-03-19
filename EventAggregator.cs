@@ -15,13 +15,14 @@ namespace EventAggregator
         {
             _eventDictionary = new Dictionary<Type, List<WeakReference>>();
         }
-
+        
         public Task Publish<TEventType>(TEventType eventType)
         {
             lock(SyncObject)
             {
-                var q = typeof(TEventType);
-                var list = GetSubscribersList(q).ToObservable();
+                var dataType = typeof(TEventType);
+                var list = GetSubscribersList(dataType).ToObservable();
+                
                 return list.ForEachAsync(p =>
                 {
                     if(p.Target is ISubscriber<TEventType> subscriber)
