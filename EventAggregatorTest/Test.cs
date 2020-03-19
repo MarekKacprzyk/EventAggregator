@@ -22,6 +22,7 @@
         }
 
         [Test]
+        [Timeout(5000)]
         public void SubscribeTest()
         {
             _sut.Subscribe(_client);
@@ -35,6 +36,7 @@
         }
 
         [Test]
+        [Timeout(5000)]
         public void PublishTest()
         {
             var value = 0;
@@ -46,6 +48,7 @@
         }
 
         [Test]
+        [Timeout(5000)]
         public void UnsubscribeTest()
         {
             var subscriber = _sut.Subscribe(_client);
@@ -56,6 +59,7 @@
         }
 
         [Test]
+        [Timeout(5000)]
         [Obsolete]
         public void PublishManyCallbackTest([Range(1, 5)]int pow)
         {
