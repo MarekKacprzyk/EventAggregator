@@ -7,7 +7,6 @@
     using System.Reflection;
     using System;
     using System.Linq;
-    using System.Threading.Tasks;
 
     [TestFixture]
     public class Test
@@ -32,10 +31,10 @@
                 .Select(c => c.Target).ToArray();
 
             Assert.That(subscribers, Has.Member(_client));
+            Assert.AreEqual(1, subscribers.Length);
         }
 
         [Test]
-        [Timeout(500)]
         public void PublishTest()
         {
             var value = 0;
@@ -49,13 +48,33 @@
         [Test]
         public void UnsubscribeTest()
         {
-            Assert.Fail();
+            var subscriber = _sut.Subscribe(_client);
+            var dictionary = GetEventAggregatorDictionary();
+            subscriber.Dispose();
+
+            Assert.That(dictionary, Has.No.Member(_client));
         }
 
         [Test]
-        public void PublishManyCallbackTest()
+        [Obsolete]
+        public void PublishManyCallbackTest([Range(1, 5)]int pow)
         {
-            Assert.Fail();
+            var counter = 0;
+            var expect = (int)Math.Pow(10, pow);
+            var subscribers = Enumerable.Range(0, expect)
+                .Select(e => Substitute.For<ISubscriber<int>>())
+                .ToArray();
+
+            foreach(var subscriber in subscribers)
+            {
+                subscriber.When(c => c.OnHandle(Arg.Any<int>())).Do(d => counter++);
+                _sut.Subscribe(subscriber);
+            }
+
+            var publishTask = _sut.Publish(0);
+            publishTask.Wait();
+
+            Assert.AreEqual(expect, counter);
         }
 
         private Dictionary<Type, List<WeakReference>> GetEventAggregatorDictionary()
