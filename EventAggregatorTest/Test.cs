@@ -7,6 +7,7 @@
     using System.Reflection;
     using System;
     using System.Linq;
+    using System.Threading.Tasks;
 
     [TestFixture]
     public class Test
@@ -34,9 +35,15 @@
         }
 
         [Test]
+        [Timeout(500)]
         public void PublishTest()
         {
-            Assert.Fail();
+            var value = 0;
+            _sut.Subscribe(_client);
+            _client.When(c => c.OnHandle(Arg.Any<int>())).Do(d => value += d.Arg<int>());
+            var resoult = _sut.Publish(15);
+            resoult.Wait();
+            Assert.AreEqual(15, value);
         }
 
         [Test]
