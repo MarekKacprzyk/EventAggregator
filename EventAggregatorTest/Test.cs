@@ -29,7 +29,7 @@
             var dictionary = GetEventAggregatorDictionary();
             var subscribers = dictionary
                 .SelectMany(d => d.Value)
-                .Select(c => c.Target).ToArray();
+                .ToArray();
 
             Assert.That(subscribers, Has.Member(_client));
             Assert.AreEqual(1, subscribers.Length);
@@ -84,10 +84,10 @@
             Assert.AreEqual(expect, counter);
         }
 
-        private Dictionary<Type, List<WeakReference>> GetEventAggregatorDictionary()
+        private Dictionary<Type, List<object>> GetEventAggregatorDictionary()
         {
             var dictionary = _sut.GetType().GetField("_eventDictionary", BindingFlags.NonPublic | BindingFlags.Instance);
-            return (Dictionary<Type, List<WeakReference>>)dictionary.GetValue(_sut);
+            return (Dictionary<Type, List<object>>)dictionary.GetValue(_sut);
         }
     }
 }
