@@ -1,10 +1,11 @@
 ﻿using System;
+using System.Threading.Tasks;
 
 namespace EventAggregator
 {
     public interface IEventAggregator
     {
         IDisposable Subscribe(object subscriber);
-        void Publish<TEventType>(TEventType eventType);
+        Task Publish<TEventType>(TEventType eventType);
     }
 }
