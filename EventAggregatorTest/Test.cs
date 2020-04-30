@@ -61,6 +61,24 @@
             Assert.AreNotEqual(15, value);
         }
 
+
+        [Test]
+        [Timeout(5000)]
+        public void UnsubscribeTest2()
+        {
+            var value = 0;
+            var client = Substitute.For<ISubscriber<int>>();
+            var subscriber1 = _sut.Subscribe(_client);
+            var subscriber2 = _sut.Subscribe(client);
+            _client.When(c => c.OnHandle(Arg.Any<int>())).Do(d => value += d.Arg<int>());
+            client.When(c => c.OnHandle(Arg.Any<int>())).Do(d => value += d.Arg<int>());
+            subscriber1.Dispose();
+            var resoult = _sut.Publish(15);
+            resoult.Wait();
+
+            Assert.AreEqual(15, value);
+        }
+
         [Test]
         [Timeout(5000)]
         [Obsolete]
