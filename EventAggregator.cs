@@ -54,7 +54,20 @@ namespace EventAggregator
 
         private void Unsubscribe(object subscriber)
         {
-            
+            lock (SyncObject)
+            {
+                var subscriberTypes = subscriber.GetType()
+                    .GetInterfaces()
+                    .Where(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(ISubscriber<>))
+                    .SelectMany(t => t.GetGenericArguments()).ToArray();
+
+                var subscribedPairs = _eventDictionary.Where(p => subscriberTypes.Any(t => t == p.Key));
+
+                foreach (var valuePair in subscribedPairs)
+                {
+                    valuePair.Value.Remove(subscriber);
+                }
+            }
         }
 
         private IList<object> GetSubscribersList(Type subscriberType)
