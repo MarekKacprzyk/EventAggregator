@@ -11,8 +11,8 @@
     [TestFixture]
     public class Test
     {
-        EventAggregator _sut;
-        ISubscriber<int> _client;
+        private EventAggregator _sut;
+        private ISubscriber<int> _client;
 
         [SetUp]
         public void SetUp()
@@ -51,11 +51,14 @@
         [Timeout(5000)]
         public void UnsubscribeTest()
         {
+            var value = 0;
             var subscriber = _sut.Subscribe(_client);
-            var dictionary = GetEventAggregatorDictionary();
+            _client.When(c => c.OnHandle(Arg.Any<int>())).Do(d => value += d.Arg<int>());
             subscriber.Dispose();
+            var resoult = _sut.Publish(15);
+            resoult.Wait();
 
-            Assert.That(dictionary, Has.No.Member(_client));
+            Assert.AreNotEqual(15, value);
         }
 
         [Test]
