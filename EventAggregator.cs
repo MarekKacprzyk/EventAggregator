@@ -1,11 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reactive.Linq;
-using System.Threading.Tasks;
-
-namespace EventAggregator
+﻿namespace EventAggregator
 {
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
+    using System.Reactive.Linq;
+    using System.Threading.Tasks;
+    using System.Threading;
+
     public class EventAggregator : IEventAggregator
     {
         private static readonly object SyncObject = new object();
@@ -16,7 +17,7 @@ namespace EventAggregator
             _eventDictionary = new Dictionary<Type, List<object>>();
         }
         
-        public Task Publish<TEventType>(TEventType eventType)
+        public Task Publish<TEventType>(TEventType eventType, CancellationToken token = new CancellationToken())
         {
             lock(SyncObject)
             {
@@ -29,7 +30,7 @@ namespace EventAggregator
                     {
                         subscriber.OnHandle(eventType);
                     }
-                });
+                }, token);
             }
         }
 
